@@ -1,2 +1,9 @@
-# CU4servly
-Server for Scontel ControlUnit4 written in Erlang
+scontel_modules
+=====
+
+An OTP application
+
+Build
+-----
+
+    $ rebar3 compile
