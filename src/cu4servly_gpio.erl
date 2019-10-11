@@ -36,7 +36,7 @@ gpio_port(Name, #gpio_port{path = Path, num = Num}) when is_list(Num) ->
 
 
 gpio_port(Name, G = #gpio_port{num = Num}) ->
-	gpio_port(Name, G#gpio_port{num = lists:flatten(iolib:format("~p", [Num]))}).
+	gpio_port(Name, G#gpio_port{num = lists:flatten(io_lib:format("~p", [Num]))}).
 
 
 
