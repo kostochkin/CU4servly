@@ -9,6 +9,7 @@ init() ->
 
 init(GPIO = #gpio_config{}) -> 
 	{ok, F} = init(GPIO, 10),
+	io:format("[ GPIO ] Port opened.~n"),
 	#gpio{latch = F, config = GPIO}.
 
 
@@ -18,7 +19,7 @@ init(GPIO, Tries) ->
 	io:format("[ GPIO ] Init ~p~n", [Tries]),
 	case filelib:is_dir(gpio_config(port_path, GPIO)) of
 		true ->
-			io:format("[ GPIO ] Port exists~n"),
+			io:format("[ GPIO ] Port exists.~n"),
 			ok = file:write_file(gpio_config(direction_path, GPIO), "out"),
 			file:open(gpio_config(value_path, GPIO), [read, write, raw, binary]);
 		false ->
