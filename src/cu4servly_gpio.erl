@@ -14,7 +14,7 @@ init1(SP, GPIO, Tries) ->
 	case filelib:is_dir(gpio_port(port_path, GPIO)) of
 		true ->
 			io:format("[ GPIO ] Port exists~n"),
-			ok = file:write_file(gpio_port(export_path, GPIO), "out"),
+			ok = file:write_file(gpio_port(direction_path, GPIO), "out"),
 			file:open(gpio_port(value_path, GPIO), [read, write, raw, exclusive, binary]);
 		false ->
 			io:format("[ GPIO ] Port doesn't exist. Try to create.~n"),
@@ -30,6 +30,7 @@ gpio_port(Name, G = #gpio_port{path = Path, num = Num}) when is_list(Num) ->
 		port_path -> ["gpio" ++ Num];
 		export_path -> ["export"];
 		value_path -> [gpio_port(port_path, G), "value"];
+		direction_path -> [gpio_port(port_path, G), "direction"];
 		dir_path -> []
 	end,
 	filename:join([Path | S]);
