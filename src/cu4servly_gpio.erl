@@ -15,7 +15,7 @@ init1(SP, GPIO, Tries) ->
 		true ->
 			io:format("[ GPIO ] Port exists~n"),
 			ok = file:write_file(gpio_port(direction_path, GPIO), "out"),
-			file:open(gpio_port(value_path, GPIO), [read, write, raw, exclusive, binary]);
+			file:open(gpio_port(value_path, GPIO), [read, write, raw, binary]);
 		false ->
 			io:format("[ GPIO ] Port doesn't exist. Try to create.~n"),
 			ok = file:write_file(gpio_port(export_path, GPIO), gpio_port(num, GPIO)),
