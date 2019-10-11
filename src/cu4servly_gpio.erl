@@ -14,11 +14,11 @@ init1(SP, GPIO, Tries) ->
 	case filelib:is_dir(gpio_port(port_path, GPIO)) of
 		true ->
 			io:format("[ GPIO ] Port exists~n"),
-			ok = file:write_file(gpio_port(export, GPIO), "out"),
-			file:open(gpio_port(value, GPIO), [read, write, raw, exclusive, binary]);
+			ok = file:write_file(gpio_port(export_path, GPIO), "out"),
+			file:open(gpio_port(value_path, GPIO), [read, write, raw, exclusive, binary]);
 		false ->
 			io:format("[ GPIO ] Port doesn't exist. Try to create.~n"),
-			ok = file:write_file(gpio_port(export, GPIO), gpio_port(num, GPIO)),
+			ok = file:write_file(gpio_port(export_path, GPIO), gpio_port(num, GPIO)),
 			timer:sleep(200),
 			init1(SP, GPIO, Tries - 1)
 		end.
