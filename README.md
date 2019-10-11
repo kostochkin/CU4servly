@@ -1,7 +1,8 @@
-scontel_modules
+CU4servly
 =====
 
-An OTP application
+A server application for Scontel ControlUnit4 written in Erlang
+
 
 Build
 -----
