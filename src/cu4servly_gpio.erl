@@ -25,11 +25,11 @@ init1(SP, GPIO, Tries) ->
 
 
 gpio_port(num, #gpio_port{num = Num}) when is_list(Num) -> Num;
-gpio_port(Name, #gpio_port{path = Path, num = Num}) when is_list(Num) ->
+gpio_port(Name, G = #gpio_port{path = Path, num = Num}) when is_list(Num) ->
 	S = case Name of
 		port_path -> ["gpio" ++ Num];
 		export_path -> ["export"];
-		value_path -> ["value"];
+		value_path -> [gpio_port(port_path, G), "value"];
 		dir_path -> []
 	end,
 	filename:join([Path | S]);
