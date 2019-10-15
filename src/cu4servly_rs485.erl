@@ -16,6 +16,7 @@ init() ->
 -spec write(#rs485{}, Data :: binary()) -> ok.
 
 write(#rs485{stream = S}, Data) ->
+	io:format("[ RS485 ] Sending ~p~n", [Data]),
 	S ! {send, Data}.
 
 
@@ -40,7 +41,11 @@ init(C = #serial_port_config{device = D, speed = S}) ->
 
 read1(Data) ->
 	receive
-		{data, B} -> read(<<Data/binary, B/binary>>)
+		{data, B} ->
+			io:format("[ RS485 ] Readed ~p~n", [B]),
+		       	read(<<Data/binary, B/binary>>);
+		_ ->
+			{error, unknown_message}
 	after
 	       ?TIMEOUT -> {data, Data}
 	end.
