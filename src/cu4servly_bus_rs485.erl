@@ -3,7 +3,7 @@
 -export([init/1, terminate/2, handle_call/3,
 	 handle_cast/2, handle_info/2, code_change/3]).
 -export([start/0]).
--record(rs485bus_state, {queue}).
+-record(rs485bus_state, {queue, id}).
 
 
 %% Interface implementation
@@ -17,13 +17,13 @@ start() ->
 
 
 init(_Args) ->
-	Q = cu4servly_rs485_sender:init_queue(),
-	{ok, #rs485bus_state{queue = Q}}.
+	{Q, FirstId} = cu4servly_rs485_sender:init_queue(),
+	{ok, #rs485bus_state{queue = Q, id = FirstId}}.
 
 
-handle_call({send, Data}, _From, S = #rs485bus_state{queue = Q}) ->
-	Pid = cu4servly_rs485_sender:enqueue(Q, Data, self()),
-	{reply, {enqueued, Pid}, S};
+handle_call({send, Data}, _From, S = #rs485bus_state{queue = Q, id = Id}) ->
+	{NewId, Pid} = cu4servly_rs485_sender:enqueue(Id, Q, Data, self()),
+	{reply, {enqueued, Pid}, S= #rs485bus_state{id = NewId}};
 
 handle_call(Req, From, State) ->
 	io:format("[ Bus rs485 ] Unknown call ~p from ~p~n", [Req, From]),

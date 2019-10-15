@@ -1,7 +1,8 @@
 -module(cu4servly_rs485_sender).
 %% NOTE: sender is not API, just for suppressing warnings.
--export([init_queue/0, enqueue/3, sender/3]).
+-export([init_queue/0, enqueue/4, sender/4]).
 -define(TIMEOUT, 50).
+-define(WAIT_WRITE, 4).
 
 %% Interface implementation
 
@@ -9,10 +10,10 @@
 -spec init_queue() -> ok.
 
 init_queue() ->
-	ets:new(?MODULE, [bag, public]).
+	{0, ets:new(?MODULE, [ordered_set, public])}.
 
-enqueue(Ets, Data, _ReturnPID) ->
-	spawn(?MODULE, sender, [Ets, Data, self()]).
+enqueue(Id, Ets, Data, _ReturnPID) ->
+	{Id + 1, spawn(?MODULE, sender, [Id, Ets, Data, self()])}.
 
 wait_queue(Ets, Id) ->
 	case ets:first(Ets) of
@@ -23,16 +24,15 @@ wait_queue(Ets, Id) ->
 
 
 push_queue(Ets, Id) ->
-	ets:insert(Ets, {Id, ok}).
+	ets:insert(Ets, {Id, self()}).
 
 
 pop_queue(Ets, Id) ->
 	ets:delete(Ets, Id).
 
 
-sender(Ets, Data, ReturnPid) ->
-	io:format("[ Bus rs485 ] Sender spawned ~p~n", [self()]),
-	Id = self(),
+sender(Id, Ets, Data, ReturnPid) ->
+	io:format("[ Bus rs485 ] Sender spawned, ID ~p, PID ~p ~n", [Id, self()]),
 	push_queue(Ets, Id),
 	case wait_queue(Ets, Id) of
 		empty ->
@@ -49,7 +49,7 @@ send_data(Data) ->
 	S = cu4servly_rs485:init(),
 	cu4servly_gpio:up(G),
        	cu4servly_rs485:write(S, Data),
-       	timer:sleep(4),
+       	timer:sleep(?WAIT_WRITE),
        	cu4servly_gpio:down(G),
        	cu4servly_rs485:read(S).
 
