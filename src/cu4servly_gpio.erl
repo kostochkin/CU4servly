@@ -33,7 +33,7 @@ down(#gpio{latch = L}) ->
 
 %% Internal implementation
 
-latch(D, L, V) ->
+latch(_D, L, V) ->
 	F = file:write(L, V),
 	% debug io:format("[ GPIO ] Set latch ~s: ~p~n", [D, F]),
 	ok = F.

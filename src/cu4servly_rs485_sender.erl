@@ -32,7 +32,7 @@ pop_queue(Ets, Id) ->
 
 
 sender(Id, Ets, Data, ReturnPid) ->
-	debug io:format("[ Bus rs485 ] Sender spawned, ID ~p, PID ~p ~n", [Id, self()]),
+	io:format("[ Bus rs485 ] Sender spawned, ID ~p, PID ~p ~n", [Id, self()]),
 	push_queue(Ets, Id),
 	case wait_queue(Ets, Id) of
 		empty ->
