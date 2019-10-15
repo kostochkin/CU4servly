@@ -23,7 +23,7 @@ init(_Args) ->
 
 handle_call({send, Data}, _From, S = #rs485bus_state{queue = Q, id = Id}) ->
 	{NewId, Pid} = cu4servly_rs485_sender:enqueue(Id, Q, Data, self()),
-	{reply, {enqueued, Pid}, S= #rs485bus_state{id = NewId}};
+	{reply, {enqueued, Pid}, S#rs485bus_state{id = NewId}};
 
 handle_call(Req, From, State) ->
 	io:format("[ Bus rs485 ] Unknown call ~p from ~p~n", [Req, From]),
