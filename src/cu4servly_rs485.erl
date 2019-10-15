@@ -1,0 +1,47 @@
+-module(cu4servly_rs485).
+-export([init/0, write/2, read/1]).
+-record(serial_port_config, {device = "/dev/ttyS0" :: [char()], speed = 500000 :: integer()}).
+-record(rs485, {stream :: pid(), owner :: pid(), config :: #serial_port_config{}}).
+-define(TIMEOUT, 50).
+
+%% Interface implementation
+
+
+-spec init() -> #rs485{}.
+
+init() -> 
+	init(#serial_port_config{}).
+
+
+-spec write(#rs485{}, Data :: binary()) -> ok.
+
+write(#rs485{stream = S}, Data) ->
+	S ! {send, Data}.
+
+
+-spec read(#rs485{}) -> {data, Data :: binary()} | {error, Reason :: atom()}.
+
+read(#rs485{owner = O}) ->
+	case self() of
+		O -> read1(<<>>);
+		_ -> {error, current_pid_is_not_owner}
+	end.
+
+
+%% Internal implementation
+
+
+init(C = #serial_port_config{device = D, speed = S}) ->
+	Pid = serial:start([{open, D}, {speed, S}]),
+	Owner = self(),
+	io:format("[ RS485 ] ~s opened, baudrate ~p, PID ~p, Owner ~p~n", [D, S, Pid, Owner]),
+	#rs485{stream = Pid, owner = Owner, config = C}.
+
+
+read1(Data) ->
+	receive
+		{data, B} -> read(<<Data/binary, B/binary>>)
+	after
+	       ?TIMEOUT -> {data, Data}
+	end.
+
