@@ -1,6 +1,6 @@
 -module(cu4servly_rs485_sender).
 %% NOTE: sender is not API, just for suppressing warnings.
--export([init_queue/0, enqueue/4, sender/4]).
+-export([init_queue/0, enqueue/3, sender/3]).
 -define(TIMEOUT, 50).
 
 %% Interface implementation
