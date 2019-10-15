@@ -24,7 +24,7 @@ init(_Args) ->
 
 handle_call({send, Data}, _From, S = #rs485bus_state{gpio = G, queue = Q}) ->
 	Pid = cu4servly_rs485_sender:enqueue(Q, G, Data, self()),
-	{ok, {enqueued, Pid}, S};
+	{reply, {enqueued, Pid}, S};
 
 handle_call(Req, From, State) ->
 	io:format("[ Bus rs485 ] Unknown call ~p from ~p~n", [Req, From]),
