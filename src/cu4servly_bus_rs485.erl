@@ -3,7 +3,7 @@
 -export([init/1, terminate/2, handle_call/3,
 	 handle_cast/2, handle_info/2, code_change/3]).
 -export([start/0]).
--record(rs485bus_state, {gpio, queue}).
+-record(rs485bus_state, {queue}).
 
 
 %% Interface implementation
@@ -17,13 +17,12 @@ start() ->
 
 
 init(_Args) ->
-	G = cu4servly_gpio:init(),
 	Q = cu4servly_rs485_sender:init_queue(),
-	{ok, #rs485bus_state{gpio = G, queue = Q}}.
+	{ok, #rs485bus_state{queue = Q}}.
 
 
-handle_call({send, Data}, _From, S = #rs485bus_state{gpio = G, queue = Q}) ->
-	Pid = cu4servly_rs485_sender:enqueue(Q, G, Data, self()),
+handle_call({send, Data}, _From, S = #rs485bus_state{queue = Q}) ->
+	Pid = cu4servly_rs485_sender:enqueue(Q, Data, self()),
 	{reply, {enqueued, Pid}, S};
 
 handle_call(Req, From, State) ->
