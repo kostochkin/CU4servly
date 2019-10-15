@@ -1,11 +1,32 @@
 -module(cu4servly_gpio).
--export([init/0]).
--record(gpio_config, {path = "/sys/class/gpio", num = 24}).
--record(gpio, {latch, config}).
+-export([init/0, latch/2]).
+-record(gpio_config, {path = "/sys/class/gpio" :: [char()], num = 24 :: integer()}).
+-record(gpio, {latch :: tuple(), config :: #gpio_config{}}).
+-define(LATCH_UP, <<"1">>).
+-define(LATCH_DOWN, <<"0">>).
 
+%% Interface implementation
+
+-spec init() -> #gpio{}.
 
 init() ->
         init(#gpio_config{}).
+
+-spec latch(up | down, #gpio{}) -> ok.
+
+latch(up, #gpio{latch = L}) ->
+       latch(<<"up">>, L, ?LATCH_UP);
+
+latch(down, #gpio{latch = L}) ->
+       latch(<<"down">>, L, ?LATCH_DOWN).
+
+%% Internal implementation
+
+latch(D, L, V) ->
+	F = file:write(L, V),
+	io:format("[ GPIO ] Latch ~s: ~p~n", [D, F]),
+	ok = F.
+
 
 init(GPIO = #gpio_config{}) -> 
 	{ok, F} = init(GPIO, 10),
@@ -28,6 +49,7 @@ init(GPIO, Tries) ->
 			timer:sleep(200),
 			init(GPIO, Tries - 1)
 		end.
+
 
 
 gpio_config(num, #gpio_config{num = Num}) when is_list(Num) -> Num;
