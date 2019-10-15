@@ -1,43 +1,45 @@
 -module(cu4servly_rs485_sender).
 %% NOTE: sender is not API, just for suppressing warnings.
--export([init/0, spawn/4, sender/3]).
+-export([init_queue/0, enqueue/4, sender/4]).
 -define(TIMEOUT, 50).
 
 %% Interface implementation
 
 
--spec init() -> ok.
+-spec init_queue() -> ok.
 
-init() ->
-	ets:new(?MODULE, [bag, public]),
-	ok.
+init_queue() ->
+	ets:new(?MODULE, [bag, public]).
 
-spawn(Id, G, Data, _ReturnPID) ->
-	push_queue(Id, Data),
-	erlang:spawn(?MODULE, sender, [Id, G, self()]).
+enqueue(Ets, G, Data, _ReturnPID) ->
+	spawn(?MODULE, sender, [Ets, G, Data, self()]).
 
-pop_queue(Id) ->
-	case ets:first(?MODULE) of
+wait_queue(Ets, Id) ->
+	case ets:first(Ets) of
 		'$end_of_table' -> empty;
-		Id -> 
-			R = ets:lookup(?MODULE, Id),
-			ets:delete(?MODULE, Id),
-			R;
-		_ -> pop_queue(Id)
+		Id -> Id;
+		_ -> wait_queue(Ets, Id)
 	end.
 
 
-push_queue(Id, Data) ->
-	ets:insert(?MODULE, {Id, Data}).
+push_queue(Ets, Id) ->
+	ets:insert(Ets, {Id, ok}).
 
 
-sender(Id, G, ReturnPid) ->
+pop_queue(Ets, Id) ->
+	ets:delete(Ets, Id).
+
+
+sender(Ets, G, Data, ReturnPid) ->
 	io:format("[ Bus rs485 ] Sender spawned ~p~n", [self()]),
-	case pop_queue(Id) of
+	Id = self(),
+	push_queue(Ets, Id),
+	case wait_queue(Ets, Id) of
 		empty ->
 			io:format("[ Bus rs485 ] Sender terminated due to empty queue ~p~n", [self()]);
-		{Id, Data} ->
+		Id ->
 			{data, Received} = send_data(G, Data),
+			pop_queue(Ets, Id),
 			ReturnPid ! {received, Received}
 	end.
 
