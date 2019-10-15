@@ -1,5 +1,5 @@
 -module(cu4servly_gpio).
--export([init/0, up/1, down/1]).
+-export([init/0, stop/1, up/1, down/1]).
 -record(gpio_config, {path = "/sys/class/gpio" :: [char()], num = 24 :: integer()}).
 -record(gpio, {latch :: tuple(), config :: #gpio_config{}}).
 -define(UP, <<"1">>).
@@ -12,15 +12,24 @@
 init() ->
         init(#gpio_config{}).
 
+
+-spec stop(#gpio{}) -> ok.
+
+stop(#gpio{latch = L, config = C}) ->
+	stop(L, C).
+
+
 -spec up(#gpio{}) -> ok.
 
 up(#gpio{latch = L}) ->
 	latch(<<"up">>, L, ?UP).
 
+
 -spec down(#gpio{}) -> ok.
 
 down(#gpio{latch = L}) ->
 	latch(<<"down">>, L, ?DOWN).
+
 
 %% Internal implementation
 
@@ -53,6 +62,10 @@ init(GPIO, Tries) ->
 		end.
 
 
+stop(F, GPIO) ->
+	file:close(F),
+	ok = file:write_file(gpio_config(unexport_path, GPIO), gpio_config(num, GPIO)).
+
 
 gpio_config(num, #gpio_config{num = Num}) when is_list(Num) -> Num;
 
@@ -60,6 +73,7 @@ gpio_config(Name, G = #gpio_config{path = Path, num = Num}) when is_list(Num) ->
 	S = case Name of
 		port_path -> ["gpio" ++ Num];
 		export_path -> ["export"];
+		unexport_path -> ["unexport"];
 		value_path -> [gpio_config(port_path, G), "value"];
 		direction_path -> [gpio_config(port_path, G), "direction"];
 		dir_path -> []
