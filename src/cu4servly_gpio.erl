@@ -63,7 +63,7 @@ init(GPIO, Tries) ->
 
 
 stop(F, GPIO) ->
-	file:close(F),
+	ok = file:close(F),
 	ok = file:write_file(gpio_config(unexport_path, GPIO), gpio_config(num, GPIO)).
 
 
