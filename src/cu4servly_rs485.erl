@@ -43,7 +43,7 @@ read1(Data) ->
 	receive
 		{data, B} ->
 			io:format("[ RS485 ] Readed ~p~n", [B]),
-		       	read(<<Data/binary, B/binary>>);
+		       	read1(<<Data/binary, B/binary>>);
 		_ ->
 			{error, unknown_message}
 	after
