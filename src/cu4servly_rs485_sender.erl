@@ -10,7 +10,7 @@
 -spec init_queue() -> ok.
 
 init_queue() ->
-	{0, ets:new(?MODULE, [ordered_set, public])}.
+	{ets:new(?MODULE, [ordered_set, public]), 0}.
 
 enqueue(Id, Ets, Data, _ReturnPID) ->
 	{Id + 1, spawn(?MODULE, sender, [Id, Ets, Data, self()])}.
