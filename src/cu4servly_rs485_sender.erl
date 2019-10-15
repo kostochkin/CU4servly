@@ -2,7 +2,7 @@
 %% NOTE: sender is not API, just for suppressing warnings.
 -export([init_queue/0, enqueue/4, sender/4]).
 -define(TIMEOUT, 50).
--define(WAIT_WRITE, 4).
+-define(WAIT_WRITE, 5).
 
 %% Interface implementation
 
