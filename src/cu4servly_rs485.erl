@@ -16,7 +16,7 @@ init() ->
 -spec write(#rs485{}, Data :: binary()) -> ok.
 
 write(#rs485{stream = S}, Data) ->
-	io:format("[ RS485 ] Sending ~p~n", [Data]),
+	% debug io:format("[ RS485 ] Sending ~p~n", [Data]),
 	S ! {send, Data}.
 
 
@@ -35,14 +35,14 @@ read(#rs485{owner = O}) ->
 init(C = #serial_port_config{device = D, speed = S}) ->
 	Pid = serial:start([{open, D}, {speed, S}]),
 	Owner = self(),
-	io:format("[ RS485 ] ~s opened, baudrate ~p, PID ~p, Owner ~p~n", [D, S, Pid, Owner]),
+	% debug io:format("[ RS485 ] ~s opened, baudrate ~p, PID ~p, Owner ~p~n", [D, S, Pid, Owner]),
 	#rs485{stream = Pid, owner = Owner, config = C}.
 
 
 read1(Data) ->
 	receive
 		{data, B} ->
-			io:format("[ RS485 ] Readed ~p~n", [B]),
+			% debug io:format("[ RS485 ] Readed ~p~n", [B]),
 		       	read1(<<Data/binary, B/binary>>);
 		_ ->
 			{error, unknown_message}
