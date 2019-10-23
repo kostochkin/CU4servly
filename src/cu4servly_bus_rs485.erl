@@ -2,15 +2,23 @@
 -behaviour(gen_server).
 -export([init/1, terminate/2, handle_call/3,
 	 handle_cast/2, handle_info/2, code_change/3]).
--export([start/0]).
+-export([start/0, send/1]).
 -record(rs485bus_state, {queue, id}).
 
 
 %% Interface implementation
 
 
+-spec start() -> {ok, pid()}.
+
 start() ->
 	gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+
+-spec send(binary()) -> {enqueued, pid()}.
+
+send(Data) ->
+	gen_server:call(?MODULE, Data).
 
 
 %% gen_server callbacks
@@ -21,8 +29,8 @@ init(_Args) ->
 	{ok, #rs485bus_state{queue = Q, id = FirstId}}.
 
 
-handle_call({send, Data}, _From, S = #rs485bus_state{queue = Q, id = Id}) ->
-	{NewId, Pid} = cu4servly_rs485_sender:enqueue(Id, Q, Data, self()),
+handle_call({send, Data}, From, S = #rs485bus_state{queue = Q, id = Id}) ->
+	{NewId, Pid} = cu4servly_rs485_sender:enqueue(Id, Q, Data, From),
 	{reply, {enqueued, Pid}, S#rs485bus_state{id = NewId}};
 
 handle_call(Req, From, State) ->

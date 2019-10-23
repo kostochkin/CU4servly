@@ -3,6 +3,7 @@
 -export([init_queue/0, enqueue/4, sender/4]).
 -define(TIMEOUT, 50).
 -define(WAIT_WRITE, 5).
+-define(WAIT_QUEUE, 1).
 
 % {ok, P} = cu4servly_bus_rs485:start().
 % gen_server:call(P, {send, <<16#f9, 16#00, 16#06, 16#00, 16#22, 16#9d, 16#2d, 16#dd, 16#fa>>}).
@@ -19,6 +20,7 @@ enqueue(Id, Ets, Data, _ReturnPID) ->
 	{Id + 1, spawn(?MODULE, sender, [Id, Ets, Data, self()])}.
 
 wait_queue(Ets, Id) ->
+	timer:sleep(?WAIT_QUEUE),
 	case ets:first(Ets) of
 		'$end_of_table' -> empty;
 		Id -> Id;

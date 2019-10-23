@@ -16,7 +16,7 @@ init() ->
 -spec stop(#rs485{}) -> ok.
 
 stop(#rs485{stream = Pid}) ->
-	Pid ! close,
+	Pid ! {close},
 	Pid ! stop,
 	wait_stop(Pid).
 
