@@ -34,27 +34,27 @@ handle_call({send, Data}, From, S = #rs485bus_state{queue = Q, id = Id}) ->
 	{reply, {enqueued, Pid}, S#rs485bus_state{id = NewId}};
 
 handle_call(Req, From, State) ->
-	io:format("[ Bus rs485 ] Unknown call ~p from ~p~n", [Req, From]),
+	io:format("[ Bus rs485 tx ] Unknown call ~p from ~p~n", [Req, From]),
 	{reply, [], State}.
 
 
 handle_cast(Req, State) ->
-	io:format("[ Bus rs485 ] Unknown cast ~p~n", [Req]),
+	io:format("[ Bus rs485 tx ] Unknown cast ~p~n", [Req]),
 	{noreply, State}.
 
 
 handle_info(Info, State) ->
-	io:format("[ Bus rs485 ] Unknown info ~p~n", [Info]),
+	io:format("[ Bus rs485 tx ] Unknown info ~p~n", [Info]),
 	{noreply, State}.
 
 
 terminate(Reason, _State) ->
-	io:format("[ Bus rs485 ] Terminate with reason ~p~n", [Reason]),
+	io:format("[ Bus rs485 tx ] Terminate with reason ~p~n", [Reason]),
 	ok.
 
 
 code_change(_OldVsn, State, _Extra) ->
-	io:format("[ Bus rs485 ] Code change not implemented~n", []),
+	io:format("[ Bus rs485 tx ] Code change not implemented~n", []),
 	{ok, State}.
 
 
