@@ -1,5 +1,5 @@
 -module(cu4servly_rs485).
--export([init/0, write/2, read/1]).
+-export([init/0, stop/1, write/2, read/1]).
 -record(serial_port_config, {device = "/dev/ttyS0" :: [char()], speed = 500000 :: integer()}).
 -record(rs485, {stream :: pid(), owner :: pid(), config :: #serial_port_config{}}).
 -define(TIMEOUT, 50).
@@ -11,6 +11,14 @@
 
 init() -> 
 	init(#serial_port_config{}).
+
+
+-spec stop(#rs485{}) -> ok.
+
+stop(#rs485{stream = Pid}) ->
+	Pid ! close,
+	Pid ! stop,
+	wait_stop(Pid).
 
 
 -spec write(#rs485{}, Data :: binary()) -> ok.
@@ -48,5 +56,12 @@ read1(Data) ->
 			{error, unknown_message}
 	after
 	       ?TIMEOUT -> {data, Data}
+	end.
+
+
+wait_stop(Pid) ->
+	case is_process_alive(Pid) of
+		true -> wait_stop(Pid);
+		false -> ok
 	end.
 

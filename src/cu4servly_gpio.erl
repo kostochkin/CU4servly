@@ -4,6 +4,7 @@
 -record(gpio, {latch :: tuple(), config :: #gpio_config{}}).
 -define(UP, <<"1">>).
 -define(DOWN, <<"0">>).
+-define(WAIT_LATCH, 1).
 
 %% Interface implementation
 
@@ -21,22 +22,44 @@ stop(#gpio{latch = L, config = C}) ->
 
 -spec up(#gpio{}) -> ok.
 
-up(#gpio{latch = L}) ->
-	latch(<<"up">>, L, ?UP).
+up(G) ->
+	up(G, wait).
+
+
+-spec up(#gpio{}, wait | no_wait) -> ok.
+
+up(#gpio{latch = L}, wait) ->
+	latch(L, ?UP),
+	wait_latch(L, ?UP);
+
+up(#gpio{latch = L}, no_wait) ->
+	latch(L, ?UP).
 
 
 -spec down(#gpio{}) -> ok.
 
 down(#gpio{latch = L}) ->
-	latch(<<"down">>, L, ?DOWN).
+	latch(L, ?DOWN).
 
 
 %% Internal implementation
 
-latch(_D, L, V) ->
+latch(L, V) ->
 	F = file:write(L, V),
-	% debug io:format("[ GPIO ] Set latch ~s: ~p~n", [D, F]),
+	% debug io:format("[ GPIO ] Set latch ~s: ~p~n", [L, F]),
 	ok = F.
+
+latch_state(L) ->
+	{ok, 0} = file:position(L, 0),
+	{ok, R} = file:read(L,1),
+	R.
+
+wait_latch(L, State) ->
+	timer:sleep(?WAIT_LATCH),
+	case latch_state(L) of
+		State -> ok;
+		_ -> wait_latch(L, State)
+	end.
 
 
 init(GPIO = #gpio_config{}) -> 

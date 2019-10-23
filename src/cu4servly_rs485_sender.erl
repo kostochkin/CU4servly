@@ -2,7 +2,10 @@
 %% NOTE: sender is not API, just for suppressing warnings.
 -export([init_queue/0, enqueue/4, sender/4]).
 -define(TIMEOUT, 50).
--define(WAIT_WRITE, 2).
+-define(WAIT_WRITE, 5).
+
+% {ok, P} = cu4servly_bus_rs485:start().
+% gen_server:call(P, {send, <<16#f9, 16#00, 16#06, 16#00, 16#22, 16#9d, 16#2d, 16#dd, 16#fa>>}).
 
 %% Interface implementation
 
@@ -51,5 +54,6 @@ send_data(Data) ->
        	cu4servly_rs485:write(S, Data),
        	timer:sleep(?WAIT_WRITE),
        	cu4servly_gpio:down(G),
-       	cu4servly_rs485:read(S).
+       	cu4servly_rs485:read(S),
+	cu4servly_rs485:stop(S).
 
