@@ -18,7 +18,7 @@ start() ->
 -spec send(binary()) -> {enqueued, pid()}.
 
 send(Data) ->
-	gen_server:call(?MODULE, Data).
+	gen_server:call(?MODULE, {send, Data}).
 
 
 %% gen_server callbacks
