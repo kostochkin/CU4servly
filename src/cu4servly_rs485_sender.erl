@@ -16,8 +16,8 @@
 init_queue() ->
 	{ets:new(?MODULE, [ordered_set, public]), 0}.
 
-enqueue(Id, Ets, Data, _ReturnPID) ->
-	{Id + 1, spawn(?MODULE, sender, [Id, Ets, Data, self()])}.
+enqueue(Id, Ets, Data, ReturnPID) ->
+	{Id + 1, spawn(?MODULE, sender, [Id, Ets, Data, ReturnPID])}.
 
 wait_queue(Ets, Id) ->
 	timer:sleep(?WAIT_QUEUE),
@@ -36,16 +36,18 @@ pop_queue(Ets, Id) ->
 	ets:delete(Ets, Id).
 
 
-sender(Id, Ets, Data, ReturnPid) ->
+sender(Id, Queue, Data, ReturnPid) ->
 	io:format("[ Bus rs485 ] Sender spawned, ID ~p, PID ~p ~n", [Id, self()]),
-	push_queue(Ets, Id),
-	case wait_queue(Ets, Id) of
-		empty ->
-			io:format("[ Bus rs485 ] Sender terminated due to empty queue ~p~n", [self()]);
-		Id ->
-			{data, Received} = send_data(Data),
-			pop_queue(Ets, Id),
-			ReturnPid ! {received, Received}
+	push_queue(Queue, Id),
+	try
+		Id = wait_queue(Queue, Id),
+		{data, Received} = send_data(Data),
+		gen_server:cast(cu4servly_bus_rs485_tx, {data, ReturnPid, Received}),
+		pop_queue(Queue, Id)
+	catch
+		X ->
+			pop_queue(Queue, Id),
+			throw(X)
 	end.
 
 
