@@ -54,6 +54,7 @@ send_data(Data) ->
        	cu4servly_rs485:write(S, Data),
        	timer:sleep(?WAIT_WRITE),
        	cu4servly_gpio:down(G),
-       	cu4servly_rs485:read(S),
-	cu4servly_rs485:stop(S).
+       	R = cu4servly_rs485:read(S),
+	cu4servly_rs485:stop(S),
+	R.
 
