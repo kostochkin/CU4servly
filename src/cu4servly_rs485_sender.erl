@@ -42,7 +42,7 @@ sender(Id, Queue, Data, ReturnPid) ->
 	try
 		Id = wait_queue(Queue, Id),
 		{data, Received} = send_data(Data),
-		gen_server:cast(cu4servly_bus_rs485_tx, {data, ReturnPid, Received}),
+		gen_server:cast(cu4servly_bus_rs485_rx, {data, ReturnPid, Received}),
 		pop_queue(Queue, Id)
 	catch
 		X ->
