@@ -26,9 +26,9 @@ handle_call(Req, From, State) ->
 	{reply, [], State}.
 
 
-handle_cast({data, Pid, Data}, State) ->
-	gen_server:handle_cast(Pid, {received, Data}),
-	{noreply, State};
+%handle_cast({data, Pid, From, Data}, State) ->
+%	gen_server:handle_cast(Pid, {received, From, Data}),
+%	{noreply, State};
 
 handle_cast(Req, State) ->
 	io:format("[ Bus rs485 rx ] Unknown cast ~p~n", [Req]),
