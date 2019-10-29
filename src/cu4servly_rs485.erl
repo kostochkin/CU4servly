@@ -47,7 +47,7 @@ init(C = #serial_port_config{device = D, speed = S}) ->
 	#rs485{stream = Pid, owner = Owner, config = C}.
 
 
-read1(Data) ->
+read1(Data) when byte_size(Data) < 5000 ->
 	receive
 		{data, B} ->
 			% debug io:format("[ RS485 ] Readed ~p~n", [B]),
@@ -55,8 +55,11 @@ read1(Data) ->
 		_ ->
 			{error, unknown_message}
 	after
-	       ?TIMEOUT -> {data, Data}
-	end.
+	       ?TIMEOUT -> {ok, Data}
+	end;
+
+read(Data) ->
+	{error, {too_big_packet, Data}}.
 
 
 wait_stop(Pid) ->

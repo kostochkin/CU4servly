@@ -41,12 +41,16 @@ sender(Id, Queue, Data, ReturnPid) ->
 	push_queue(Queue, Id),
 	try
 		Id = wait_queue(Queue, Id),
-		{data, Received} = send_data(Data),
-		gen_server:cast(cu4servly_bus_rs485_rx, {data, ReturnPid, self(), Received}),
+		case send_data(Data) of
+			{ok, R} ->
+				gen_server:cast(cu4servly_bus_rs485_rx, {data, ReturnPid, self(), R});
+			{error, R} ->
+				gen_server:cast(cu4servly_bus_rs485_rx, {error, ReturnPid, self(), R})
+		end,
 		pop_queue(Queue, Id)
 	catch
 		X ->
-			gen_server:cast(cu4servly_bus_rs485_rx, {data, ReturnPid, self(), <<>>}),
+			gen_server:cast(cu4servly_bus_rs485_rx, {error, ReturnPid, self(), undefined}),
 			pop_queue(Queue, Id),
 			throw(X)
 	end.
