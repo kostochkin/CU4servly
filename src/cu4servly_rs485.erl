@@ -58,7 +58,7 @@ read1(Data) when byte_size(Data) < 5000 ->
 	       ?TIMEOUT -> {ok, Data}
 	end;
 
-read(Data) ->
+read1(Data) ->
 	{error, {too_big_packet, Data}}.
 
 
