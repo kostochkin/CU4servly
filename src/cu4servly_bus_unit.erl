@@ -83,7 +83,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internal implementation
 
-init_state(S = #state{name = enumeration, unit = #unit{address = A}, tries = {T, FT}}) ->
+init_state(S = #state{name = enumerate, unit = #unit{address = A}, tries = {T, FT}}) ->
 	{enqueued, Replier} = cu4servly_bus_rs485_tx:send(<<A, ?G_GetDeviceType, 0>>),
 	S#state{tries = {T - 1, FT}, replier = Replier};
 
