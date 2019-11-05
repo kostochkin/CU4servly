@@ -29,7 +29,7 @@ handle_call(Req, From, State) ->
 
 handle_cast({data, To, From, Data}, State) ->
 	{ok, #decoder_state{result = R}} = cstarprotocol_bytestuffing_lib:decode(Data),
-	gen_server:handle_cast(To, {received, From, R}),
+	gen_server:cast(To, {received, From, R}),
 	{noreply, State};
 
 handle_cast({error, _To, _From, _Data} = Req,  State) ->
