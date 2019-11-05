@@ -55,8 +55,8 @@ handle_info(Info, State) ->
 	{noreply, State}.
 
 
-terminate({shutdown, unit_not_responding}, #state{unit = Unit}) ->
-	io:format("[ Bus unit ] ~p not responding, shutdown, state~n", [Unit]),
+terminate({shutdown, unit_not_responding}, S) ->
+	deinit_device(S),
 	ok;
 
 terminate(Reason, State) ->
@@ -102,6 +102,9 @@ init_device(<<?G_GetModVersion, Length, Version:Length/binary>>, I = #state{name
 	VerInt = list_to_integer(binary_to_list(Version)),
 	Unit = U#unit{type = UT#unit_type{m = VerInt}},
 	% io:format("[ Unit ] Unit received modification ~p~n", [Unit]),
-	gen_server:cast(I#state.bus, {enumerated, self(), Unit}),
+	gen_server:cast(I#state.bus, {device_found, self(), Unit}),
 	{noreply, I#state{name = ready, unit = Unit}}.
+
+deinit_device(S) ->
+	gen_server:cast(S#state.bus, {device_not_found, self(), S#state.unit}).
 
