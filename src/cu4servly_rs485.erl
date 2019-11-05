@@ -3,6 +3,7 @@
 -record(serial_port_config, {device = "/dev/ttyS0" :: [char()], speed = 500000 :: integer()}).
 -record(rs485, {stream :: pid(), owner :: pid(), config :: #serial_port_config{}}).
 -define(TIMEOUT, 50).
+-define(MAX_PACKET_SIZE_KOSTIL, 1000).
 
 %% Interface implementation
 
@@ -47,7 +48,7 @@ init(C = #serial_port_config{device = D, speed = S}) ->
 	#rs485{stream = Pid, owner = Owner, config = C}.
 
 
-read1(Data) when byte_size(Data) < 5000 ->
+read1(Data) when byte_size(Data) < ?MAX_PACKET_SIZE_KOSTIL ->
 	receive
 		{data, B} ->
 			% debug io:format("[ RS485 ] Readed ~p~n", [B]),
