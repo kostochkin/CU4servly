@@ -51,8 +51,9 @@ handle_cast({received, Sender, <<A, ?G_GetDeviceType, Length, Type:Length/binary
 handle_cast({received, Sender, <<A, ?G_GetModVersion, Length, Version:Length/binary>>},
 	    I = #state{name = get_modification, replier = Sender, unit = #unit{address = A} = U}) ->
 	UT = U#unit.type,
-	Unit = U#unit{type = UT#unit_type{m = Version}},
-	io:format("[ Unit ] Unit ~p version ~p~n", [A, Unit]),
+	VerInt = list_to_integer(binary_to_list(Version)),
+	Unit = U#unit{type = UT#unit_type{m = VerInt}},
+	io:format("[ Unit ] Unit ~p received modification ~p~n", [A, Unit]),
 	{noreply, I#state{name = ready, unit = Unit}};
 
 handle_cast({received, Sender, _}, S = #state{replier = Sender, tries = {T, _}})
