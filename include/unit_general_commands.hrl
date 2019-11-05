@@ -1,0 +1,14 @@
+-define(G_Init, 0).
+-define(G_GoToPark, 1).
+-define(G_ListeningOff, 2).
+-define(G_GetStatus, 3).
+-define(G_GetLastError, 4).
+-define(G_GetDeviceId, 5).
+-define(G_GetDeviceType, 6).
+-define(G_GetModVersion, 7).
+-define(G_GetHwVersion, 8).
+-define(G_GetFwVersion, 9).
+-define(G_GetDeviceDescription, 10).
+-define(G_Reboot, 11).
+-define(G_WriteEeprom, 12).
+

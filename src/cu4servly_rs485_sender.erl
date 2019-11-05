@@ -5,8 +5,6 @@
 -define(WAIT_WRITE, 5).
 -define(WAIT_QUEUE, 1).
 
-% {ok, P} = cu4servly_bus_rs485:start().
-% gen_server:call(P, {send, <<16#f9, 16#00, 16#06, 16#00, 16#22, 16#9d, 16#2d, 16#dd, 16#fa>>}).
 
 %% Interface implementation
 
@@ -37,7 +35,7 @@ pop_queue(Ets, Id) ->
 
 
 sender(Id, Queue, Data, ReturnPid) ->
-	io:format("[ Bus rs485 ] Sender spawned, ID ~p, PID ~p ~n", [Id, self()]),
+	% io:format("[ Bus rs485 ] Sender spawned, ID ~p, PID ~p ~n", [Id, self()]),
 	push_queue(Queue, Id),
 	try
 		Id = wait_queue(Queue, Id),
