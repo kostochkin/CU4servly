@@ -34,27 +34,9 @@ handle_call(Req, From, State) ->
 	{reply, [], State}.
 
 
-handle_cast({received, Sender, <<A, ?G_GetDeviceType, Length, Type:Length/binary>>},
-	    I = #state{name = enumerate, replier = Sender, unit = #unit{address = A} = U}) ->
-	<<"CU4", DT:2/binary, _Rest/binary>> = Type,
-	UnitType = proplists:get_value(DT, ?UNIT_TYPES),
-	Unit = U#unit{type = #unit_type{t = UnitType}},
-	io:format("[ Unit ] Unit enumerated ~p ~p~n", [A, Unit]),
-	case UnitType of
-		undefined ->
-			{stop, {shutdown, {unknown_type, UnitType}}, Unit};
-		_ ->
-			NS = init_state(I#state{name = get_modification, unit = Unit}),
-			{noreply, reset_tries(NS)}
-	end;
-
-handle_cast({received, Sender, <<A, ?G_GetModVersion, Length, Version:Length/binary>>},
-	    I = #state{name = get_modification, replier = Sender, unit = #unit{address = A} = U}) ->
-	UT = U#unit.type,
-	VerInt = list_to_integer(binary_to_list(Version)),
-	Unit = U#unit{type = UT#unit_type{m = VerInt}},
-	io:format("[ Unit ] Unit ~p received modification ~p~n", [A, Unit]),
-	{noreply, I#state{name = ready, unit = Unit}};
+handle_cast({received, Sender, <<A, Rest/binary>>}, S = #state{name = SN, replier = Sender, unit = #unit{address = A}})
+	when SN == enumerate orelse SN == get_modification ->
+	init_device(Rest, S);
 
 handle_cast({received, Sender, _}, S = #state{replier = Sender, tries = {T, _}})
 	when T > 0 ->
@@ -93,5 +75,28 @@ init_state(S = #state{name = get_modification, unit = #unit{address = A}, tries 
 	{enqueued, Replier} = cu4servly_bus_rs485_tx:send(<<A, ?G_GetModVersion, 0>>),
 	S#state{tries = {T - 1, FT}, replier = Replier}.
 
+
 reset_tries(S = #state{tries = {_, T}}) ->
 	S#state{tries = {T, T}}.
+
+
+init_device(<<?G_GetDeviceType, Length, Type:Length/binary>>, I = #state{name = enumerate, unit = U}) ->
+	<<"CU4", DT:2/binary, _Rest/binary>> = Type,
+	UnitType = proplists:get_value(DT, ?UNIT_TYPES),
+	Unit = U#unit{type = #unit_type{t = UnitType}},
+	io:format("[ Unit ] Unit enumerated ~p~n", [Unit]),
+	case UnitType of
+		undefined ->
+			{stop, {shutdown, {unknown_type, UnitType}}, Unit};
+		_ ->
+			NS = init_state(I#state{name = get_modification, unit = Unit}),
+			{noreply, reset_tries(NS)}
+	end;
+
+init_device(<<?G_GetModVersion, Length, Version:Length/binary>>, I = #state{name = get_modification, unit = U}) ->
+	UT = U#unit.type,
+	VerInt = list_to_integer(binary_to_list(Version)),
+	Unit = U#unit{type = UT#unit_type{m = VerInt}},
+	io:format("[ Unit ] Unit received modification ~p~n", [Unit]),
+	{noreply, I#state{name = ready, unit = Unit}}.
+
