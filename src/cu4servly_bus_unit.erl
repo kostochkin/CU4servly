@@ -6,7 +6,7 @@
 -include("unit.hrl").
 -include("unit_general_commands.hrl").
 
--record(init_state, {unit :: #unit{}, tries :: integer(), replier :: pid()}).
+-record(init_state, {unit :: #unit{}, tries :: integer(), replier :: pid() | undefined}).
 
 
 %% Interface implementation
@@ -15,7 +15,8 @@
 % -spec start() -> {ok, pid()}.
 
 start(#unit{} = Unit, Tries) ->
-	gen_server:start_link(?MODULE, #init_state{unit = Unit, tries = Tries}, []).
+	{ok, _} = R = gen_server:start_link(?MODULE, #init_state{unit = Unit, tries = Tries}, []),
+	R.
 
 
 %% gen_server callbacks
@@ -30,10 +31,10 @@ handle_call(Req, From, State) ->
 	{reply, [], State}.
 
 
-handle_cast({received, Sender, <<A, ?G_GetDeviceType, _Rest/binary>>},
+handle_cast({received, Sender, <<A, ?G_GetDeviceType, Length, Type:Length/binary>>},
 	    #init_state{replier = Sender, unit = #unit{address = A} = U}) ->
 	io:format("[ Unit ] Unit enumerated ~p~n", [A]),
-	{noreply, U};
+	{noreply, U#unit{type = Type}};
 
 handle_cast({received, Sender, _}, S = #init_state{replier = Sender}) ->
 	NewState = #init_state{tries = NT} = init_state(S),
@@ -55,8 +56,8 @@ handle_info(Info, State) ->
 	{noreply, State}.
 
 
-terminate(Reason, _State) ->
-	io:format("[ Bus unit ] Terminate with reason ~p~n", [Reason]),
+terminate(Reason, State) ->
+	io:format("[ Bus unit ] Terminate with reason ~p, state ~p~n", [Reason, State]),
 	ok.
 
 
