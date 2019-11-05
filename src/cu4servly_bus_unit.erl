@@ -2,11 +2,11 @@
 -behaviour(gen_server).
 -export([init/1, terminate/2, handle_call/3,
 	 handle_cast/2, handle_info/2, code_change/3]).
--export([start/2]).
+-export([start/3]).
 -include("unit.hrl").
 -include("unit_general_commands.hrl").
 
--record(state, {name = enumerate :: enumerate | get_modification | ready,
+-record(state, {name = enumerate :: enumerate | get_modification | ready, bus :: pid(),
 	       unit :: #unit{}, tries :: {integer(), integer()}, replier :: pid() | undefined}).
 
 
@@ -15,10 +15,10 @@
 
 % -spec start() -> {ok, pid()}.
 
-start(#unit{} = Unit, Tries) ->
+start(#unit{} = Unit, Bus, Tries) ->
 	{ok, _} = R = gen_server:start_link(
 			?MODULE,
-			#state{unit = Unit, tries = {Tries, Tries}}, []),
+			#state{bus = Bus, unit = Unit, tries = {Tries, Tries}}, []),
 	R.
 
 
@@ -84,7 +84,7 @@ init_device(<<?G_GetDeviceType, Length, Type:Length/binary>>, I = #state{name = 
 	<<"CU4", DT:2/binary, _Rest/binary>> = Type,
 	UnitType = proplists:get_value(DT, ?UNIT_TYPES),
 	Unit = U#unit{type = #unit_type{t = UnitType}},
-	io:format("[ Unit ] Unit enumerated ~p~n", [Unit]),
+	% io:format("[ Unit ] Unit enumerated ~p~n", [Unit]),
 	case UnitType of
 		undefined ->
 			{stop, {shutdown, {unknown_type, UnitType}}, Unit};
@@ -97,6 +97,7 @@ init_device(<<?G_GetModVersion, Length, Version:Length/binary>>, I = #state{name
 	UT = U#unit.type,
 	VerInt = list_to_integer(binary_to_list(Version)),
 	Unit = U#unit{type = UT#unit_type{m = VerInt}},
-	io:format("[ Unit ] Unit received modification ~p~n", [Unit]),
+	% io:format("[ Unit ] Unit received modification ~p~n", [Unit]),
+	gen_server:cast(I#state.bus, {enumerated, self(), Unit}),
 	{noreply, I#state{name = ready, unit = Unit}}.
 

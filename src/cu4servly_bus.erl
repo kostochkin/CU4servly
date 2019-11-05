@@ -34,7 +34,7 @@ init(_Args) ->
 
 handle_call({enumerate, rs485, Tries}, _From, State) ->
 	Unit = fun (A) -> #unit{interface = rs485, address = A} end,
-	[supervisor:start_child(cu4servly_bus_unit_sup, [Unit(X), Tries]) || X <- ?RS485_CHANNELS],
+	[supervisor:start_child(cu4servly_bus_unit_sup, [Unit(X), self(), Tries]) || X <- ?RS485_CHANNELS],
 	{reply, {ok, queued}, State};
 
 handle_call(Req, From, State) ->
