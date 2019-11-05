@@ -28,7 +28,7 @@ handle_call(Req, From, State) ->
 
 
 handle_cast({data, To, From, Data}, State) ->
-	Data = case cstarprotocol_bytestuffing_lib:decode(Data) of
+	Rec = case cstarprotocol_bytestuffing_lib:decode(Data) of
 		{ok, #decoder_state{result = R}} ->
 			       case stm32_helper_lib:has_correct_crc32(R) of
 				       true ->
@@ -39,7 +39,7 @@ handle_cast({data, To, From, Data}, State) ->
 		{error, _} ->
 			       <<>>
 	end,
-	gen_server:cast(To, {received, From, Data}),
+	gen_server:cast(To, {received, From, Rec}),
 	{noreply, State};
 
 handle_cast({error, _To, _From, _Data} = Req,  State) ->
