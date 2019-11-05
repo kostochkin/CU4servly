@@ -49,8 +49,9 @@ handle_cast({received, Sender, <<A, ?G_GetDeviceType, Length, Type:Length/binary
 	end;
 
 handle_cast({received, Sender, <<A, ?G_GetModVersion, Length, Version:Length/binary>>},
-	    I = #state{name = enumerate, replier = Sender, unit = #unit{address = A} = U}) ->
-	Unit = U#unit{type = U#unit_type{m = Version}},
+	    I = #state{name = get_modification, replier = Sender, unit = #unit{address = A} = U}) ->
+	UT = U#unit.type,
+	Unit = U#unit{type = UT#unit_type{m = Version}},
 	io:format("[ Unit ] Unit ~p version ~p~n", [A, Unit]),
 	{noreply, I#state{name = ready, unit = Unit}};
 
