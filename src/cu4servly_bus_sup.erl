@@ -24,8 +24,8 @@ init([]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 0,
                  period => 1},
-    ChildSpecs = [#{id => cu4servly_bus_rs485_sup, start => {cu4servly_bus_rs485_sup, start, []}},
-		  #{id => cu4servly_bus_unit_sup, start => {cu4servly_bus_unit_sup, start, []}},
+    ChildSpecs = [#{id => cu4servly_bus_rs485_sup, start => {cu4servly_bus_rs485_sup, start_link, []}},
+		  #{id => cu4servly_bus_unit_sup, start => {cu4servly_bus_unit_sup, start_link, []}},
 		  #{id => cu4servly_bus, start => {cu4servly_bus, start, []}}],
     {ok, {SupFlags, ChildSpecs}}.
 
