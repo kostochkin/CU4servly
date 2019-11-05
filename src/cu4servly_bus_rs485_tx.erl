@@ -20,7 +20,6 @@ start() ->
 send(Data) ->
 	WithCRC = stm32_helper_lib:append_crc32(Data),
 	BS = cstarprotocol_bytestuffing_lib:encode(WithCRC),
-	io:format("Sending ~p~n", [BS]),
 	gen_server:call(?MODULE, {send, BS}).
 
 

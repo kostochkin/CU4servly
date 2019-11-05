@@ -1,5 +1,5 @@
 -module(cu4servly_gpio).
--export([init/0, stop/1, up/1, down/1]).
+-export([init/0, stop/1, up/1, up/2, down/1]).
 -record(gpio_config, {path = "/sys/class/gpio" :: [char()], num = 24 :: integer()}).
 -record(gpio, {latch :: tuple(), config :: #gpio_config{}}).
 -define(UP, <<"1">>).
@@ -11,13 +11,15 @@
 -spec init() -> #gpio{}.
 
 init() ->
-        init(#gpio_config{}).
+        GPIO = #gpio{} = init(#gpio_config{}),
+	GPIO.
 
 
 -spec stop(#gpio{}) -> ok.
 
 stop(#gpio{latch = L, config = C}) ->
-	stop(L, C).
+	ok = stop(L, C),
+	ok.
 
 
 -spec up(#gpio{}) -> ok.

@@ -6,7 +6,8 @@
 -include("unit.hrl").
 -include("unit_general_commands.hrl").
 
--record(init_state, {unit :: #unit{}, tries :: integer(), replier :: pid() | undefined}).
+-record(state, {name = enumerate :: enumerate | get_modification | ready,
+	       unit :: #unit{}, tries :: {integer(), integer()}, replier :: pid() | undefined}).
 
 
 %% Interface implementation
@@ -15,7 +16,9 @@
 % -spec start() -> {ok, pid()}.
 
 start(#unit{} = Unit, Tries) ->
-	{ok, _} = R = gen_server:start_link(?MODULE, #init_state{unit = Unit, tries = Tries}, []),
+	{ok, _} = R = gen_server:start_link(
+			?MODULE,
+			#state{unit = Unit, tries = {Tries, Tries}}, []),
 	R.
 
 
@@ -32,19 +35,31 @@ handle_call(Req, From, State) ->
 
 
 handle_cast({received, Sender, <<A, ?G_GetDeviceType, Length, Type:Length/binary>>},
-	    #init_state{replier = Sender, unit = #unit{address = A} = U}) ->
-	io:format("[ Unit ] Unit enumerated ~p ~p~n", [A, Type]),
-	{noreply, U#unit{type = Type}};
-
-handle_cast({received, Sender, _}, S = #init_state{replier = Sender}) ->
-	NewState = #init_state{tries = NT} = init_state(S),
-	if
-		NT < 1 ->
-			io:format("[ Unit ] Unit not found ~p~n", [S#init_state.unit]),
-			{stop, {shutdown, unit_not_found}, NewState};
-		true ->
-			{noreply, NewState}
+	    I = #state{name = enumerate, replier = Sender, unit = #unit{address = A} = U}) ->
+	<<"CU4", DT:2/binary, _Rest/binary>> = Type,
+	UnitType = proplists:get_value(DT, ?UNIT_TYPES),
+	Unit = U#unit{type = #unit_type{t = UnitType}},
+	io:format("[ Unit ] Unit enumerated ~p ~p~n", [A, Unit]),
+	case UnitType of
+		undefined ->
+			{stop, {shutdown, {unknown_type, UnitType}}, Unit};
+		_ ->
+			NS = init_state(I#state{name = get_modification, unit = Unit}),
+			{noreply, reset_tries(NS)}
 	end;
+
+handle_cast({received, Sender, <<A, ?G_GetModVersion, Length, Version:Length/binary>>},
+	    I = #state{name = enumerate, replier = Sender, unit = #unit{address = A} = U}) ->
+	Unit = U#unit{type = U#unit_type{m = Version}},
+	io:format("[ Unit ] Unit ~p version ~p~n", [A, Unit]),
+	{noreply, I#state{name = ready, unit = Unit}};
+
+handle_cast({received, Sender, _}, S = #state{replier = Sender, tries = {T, _}})
+	when T > 0 ->
+	{noreply, init_state(S)};
+
+handle_cast({received, Sender, _}, S = #state{replier = Sender, tries = {0, _}}) ->
+	{stop, {shutdown, unit_not_responding}, S};
 
 handle_cast(Req, S) ->
 	io:format("[ Unit ] Unknown cast ~p~n", [Req]),
@@ -68,7 +83,13 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internal implementation
 
-init_state(S = #init_state{unit = #unit{address = A}, tries = T}) ->
+init_state(S = #state{name = enumeration, unit = #unit{address = A}, tries = {T, FT}}) ->
 	{enqueued, Replier} = cu4servly_bus_rs485_tx:send(<<A, ?G_GetDeviceType, 0>>),
-	S#init_state{tries = T - 1, replier = Replier}.
+	S#state{tries = {T - 1, FT}, replier = Replier};
 
+init_state(S = #state{name = get_modification, unit = #unit{address = A}, tries = {T, FT}}) ->
+	{enqueued, Replier} = cu4servly_bus_rs485_tx:send(<<A, ?G_GetModVersion, 0>>),
+	S#state{tries = {T - 1, FT}, replier = Replier}.
+
+reset_tries(S = #state{tries = {_, T}}) ->
+	S#state{tries = {T, T}}.
