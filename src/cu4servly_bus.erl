@@ -8,7 +8,7 @@
 -include("unit.hrl").
 -record(bus_state, {units}).
 
--define(RS485_CHANNELS, [0,1,2]).
+-define(RS485_CHANNELS, (lists:seq(0,32))).
 -define(ENUMERATE_TRIES, 10).
 
 

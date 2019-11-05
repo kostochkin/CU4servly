@@ -42,10 +42,13 @@ handle_cast({data, To, From, Data}, State) ->
 	gen_server:cast(To, {received, From, Rec}),
 	{noreply, State};
 
-handle_cast({error, _To, _From, _Data} = Req,  State) ->
-	io:format("[ Bus rs485 rx ] Sender error ~p~n", [Req]),
-	{noreply, State}.
+handle_cast({error, _To, _From, {Reason, _}},  State) ->
+	io:format("[ Bus rs485 rx ] Sender error ~p~n", [Reason]),
+	{noreply, State};
 
+handle_cast(Req,  State) ->
+	io:format("[ Bus rs485 rx ] Unknown handle cast ~p~n", [Req]),
+	{noreply, State}.
 
 handle_info(Info, State) ->
 	io:format("[ Bus rs485 rx ] Unknown info ~p~n", [Info]),
