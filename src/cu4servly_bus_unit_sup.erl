@@ -24,7 +24,7 @@ init([]) ->
     SupFlags = #{strategy => simple_one_for_one,
                  intensity => 0,
                  period => 1},
-    ChildSpecs = [#{id => cu4servly_bus_unit, start => {cu4servly_bus_unit, start, []}}],
+    ChildSpecs = [#{id => cu4servly_bus_unit, start => {cu4servly_bus_unit, start, []}, restart => transient}],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

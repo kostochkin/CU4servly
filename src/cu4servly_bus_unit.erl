@@ -15,7 +15,7 @@
 % -spec start() -> {ok, pid()}.
 
 start(#unit{} = Unit, Tries) ->
-	gen_server:start_link({local, ?MODULE}, ?MODULE, #init_state{unit = Unit, tries = Tries}, []).
+	gen_server:start_link(?MODULE, #init_state{unit = Unit, tries = Tries}, []).
 
 
 %% gen_server callbacks

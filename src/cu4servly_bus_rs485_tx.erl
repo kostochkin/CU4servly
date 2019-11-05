@@ -32,7 +32,7 @@ init(_Args) ->
 	{ok, #rs485bus_state{queue = Q, id = FirstId}}.
 
 
-handle_call({send, Data}, From, S = #rs485bus_state{queue = Q, id = Id}) ->
+handle_call({send, Data}, {From, _Tag}, S = #rs485bus_state{queue = Q, id = Id}) ->
 	{NewId, Pid} = cu4servly_rs485_sender:enqueue(Id, Q, Data, From),
 	{reply, {enqueued, Pid}, S#rs485bus_state{id = NewId}};
 
