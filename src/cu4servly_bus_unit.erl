@@ -33,7 +33,7 @@ handle_call(Req, From, State) ->
 
 handle_cast({received, Sender, <<A, ?G_GetDeviceType, Length, Type:Length/binary>>},
 	    #init_state{replier = Sender, unit = #unit{address = A} = U}) ->
-	io:format("[ Unit ] Unit enumerated ~p~n", [A]),
+	io:format("[ Unit ] Unit enumerated ~p ~p~n", [A, Type]),
 	{noreply, U#unit{type = Type}};
 
 handle_cast({received, Sender, _}, S = #init_state{replier = Sender}) ->
