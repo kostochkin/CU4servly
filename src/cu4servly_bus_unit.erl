@@ -40,7 +40,7 @@ handle_cast({received, Sender, _}, S = #init_state{replier = Sender}) ->
 	if
 		NT < 1 ->
 			io:format("[ Unit ] Unit not found ~p~n", [S#init_state.unit]),
-			{stop, unit_not_found, NewState};
+			{stop, {shutdown, unit_not_found}, NewState};
 		true ->
 			{noreply, NewState}
 	end;
