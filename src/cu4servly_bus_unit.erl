@@ -55,6 +55,10 @@ handle_info(Info, State) ->
 	{noreply, State}.
 
 
+terminate({shutdown, unit_not_responding}, #state{unit = Unit}) ->
+	io:format("[ Bus unit ] ~p not responding, shutdown, state~n", [Unit]),
+	ok;
+
 terminate(Reason, State) ->
 	io:format("[ Bus unit ] Terminate with reason ~p, state ~p~n", [Reason, State]),
 	ok.
